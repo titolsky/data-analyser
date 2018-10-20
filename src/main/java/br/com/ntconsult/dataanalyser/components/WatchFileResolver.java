@@ -51,7 +51,7 @@ public class WatchFileResolver implements InitializingBean
 				{				
 					Path dir = (Path) key.watchable();
 					Path fullPath = dir.resolve((Path) event.context());
-					analyzer.analyze(fullPath, event.context().toString());
+					analyzer.analyze(fullPath);
 					LOGGER.log(Level.INFO, String.format("File affected: '%s'", fullPath.toString()));
 				}
 			}
@@ -64,9 +64,10 @@ public class WatchFileResolver implements InitializingBean
 		List<Path> paths = new ArrayList<>();
 		Path pathIn = Paths.get(baseFolder+"/data/in");
 		Path pathOut = Paths.get(baseFolder+"/data/out");
+		Path pathProcessed = Paths.get(baseFolder+"/data/processed");
 		paths.add(pathIn);
 		paths.add(pathOut);
-
+		paths.add(pathProcessed);
 		paths.forEach(path -> createFolder(path));
 	}
 
