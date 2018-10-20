@@ -20,12 +20,16 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import br.com.ntconsult.dataanalyser.exceptions.FolderNotAccessibleException;
+import br.com.ntconsult.dataanalyser.service.FileContentAnalyzerService;
 
 @Component
 public class WatchFileResolver implements InitializingBean
 {	
 	@Autowired
     private Environment environment;
+	
+	@Autowired
+    private FileContentAnalyzerService analyzer;
 	
 	private static final Logger LOGGER = Logger.getLogger(WatchFileResolver.class.getName());
 		
@@ -46,8 +50,9 @@ public class WatchFileResolver implements InitializingBean
 				if(event.context().toString().endsWith(extension))
 				{				
 					Path dir = (Path) key.watchable();
-					Path fullPath = dir.resolve((Path) event.context());			
-					LOGGER.log(Level.INFO, "File affected: '" + fullPath.toString() + "'");
+					Path fullPath = dir.resolve((Path) event.context());
+					analyzer.analyze(fullPath, event.context().toString());
+					LOGGER.log(Level.INFO, String.format("File affected: '%s'", fullPath.toString()));
 				}
 			}
 			key.reset();
@@ -74,7 +79,7 @@ public class WatchFileResolver implements InitializingBean
 				Files.createDirectories(path);
 			} catch (IOException e)
 			{
-				throw new FolderNotAccessibleException("Can't create folders... " + e.getMessage());
+				throw new FolderNotAccessibleException(String.format("Can't create folders... \n %s", e.getMessage()));
 			}
 		}
 	}
