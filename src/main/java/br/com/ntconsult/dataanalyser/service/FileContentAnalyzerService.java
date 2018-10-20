@@ -16,5 +16,7 @@ public class FileContentAnalyzerService
 	public void analyze(Path filePath, String fileName)
 	{
 		FileData fileData = fileImportService.importFile(filePath, fileName);
+		
+		System.out.println(fileData);
 	}	
 }

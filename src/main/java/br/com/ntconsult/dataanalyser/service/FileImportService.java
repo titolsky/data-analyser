@@ -4,15 +4,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.ntconsult.dataanalyser.data.Client;
 import br.com.ntconsult.dataanalyser.data.FileData;
-import br.com.ntconsult.dataanalyser.data.Item;
 import br.com.ntconsult.dataanalyser.data.Sale;
 import br.com.ntconsult.dataanalyser.data.Salesman;
 import br.com.ntconsult.dataanalyser.exceptions.FileReadException;
@@ -23,43 +24,55 @@ public class FileImportService
 	private static final String SALESMAN_LINE_ID = "001";
 	private static final String CLIENT_LINE_ID = "002";
 	private static final String SALE_LINE_ID = "003";
-
+		
+	@Autowired
+	private SalesmanDataBinderService salesmanDataBinderService;
+	@Autowired
+	private ClientDataBinderService clientDataBinderService;
+	@Autowired
+    private SaleDataBinderService saleDataBinderService;
+	
 	public synchronized FileData importFile(Path filePath, String fileName)
 	{
-		FileData fileData = new FileData(fileName);		
-		try (Stream<String> stream = Files.lines(filePath)) {			
-			List<String> salesmanLines = stream.filter(line -> line.startsWith(SALESMAN_LINE_ID))
-										  	   .collect(Collectors.toList());		  
-			
-			List<String> clientsLines = stream.filter(line -> line.startsWith(CLIENT_LINE_ID))
-					  						  .collect(Collectors.toList());
-			
-			List<String> saleLines = stream.filter(line -> line.startsWith(SALE_LINE_ID))
-					  					   .collect(Collectors.toList());
-			
-			fileData.
-			
+		List<String> fileLines = new ArrayList<>();	
+		
+		try (Stream<String> stream = Files.lines(filePath)) {					
+			stream.forEach(line -> fileLines.add(line));					
 		} catch (IOException e) {
 			throw new FileReadException(String.format("Can't ready file from path '%s' error: %s",filePath.toString(), e.getMessage()));
 		}
 		
-		return fileData;
+		return new FileData(fileName, 
+							getSalesmans(getLinesById(fileLines, SALESMAN_LINE_ID)), 
+							getClients(getLinesById(fileLines, CLIENT_LINE_ID)), 
+							getSales(getLinesById(fileLines, SALE_LINE_ID)));
+	}
+	
+	private List<String> getLinesById(List<String> fileLines, String id )
+	{		
+		return fileLines.stream()
+						.filter(line -> line.startsWith(id))
+						.collect(Collectors.toList());		  					
 	}
 	
 	private List<Salesman> getSalesmans(List<String> SalesmanLines)
-	{
-		return null;
+	{		
+		List<Salesman> salesmans = new ArrayList<>();
+		SalesmanLines.forEach(line -> salesmans.add(salesmanDataBinderService.getSalesman(line)));
+		return salesmans;
 	}
 	
-	private List<Sale> getSales(List<String> SalesLines)
+	private List<Client> getClients(List<String> clientLines)
 	{
-		return null;
+		List<Client> clients = new ArrayList<>();
+		clientLines.forEach(line -> clients.add(clientDataBinderService.getClient(line)));
+		return clients;
 	}
 	
-	private List<Item> getSalesman(List<String> ItensLines)
+	private List<Sale> getSales(List<String> SaleLines)
 	{
-		return null;
-	}
-	
-		
+		List<Sale> sales = new ArrayList<>();
+		SaleLines.forEach(line -> sales.add(saleDataBinderService.getSale(line)));
+		return sales;
+	}			
 }
