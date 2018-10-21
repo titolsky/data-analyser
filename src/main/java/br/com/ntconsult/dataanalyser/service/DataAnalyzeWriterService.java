@@ -26,7 +26,7 @@ public class DataAnalyzeWriterService
 			String baseFolder = environment.getProperty("br.com.ntconsult.dataanalyzer.data.basefolder",".");
 			String extension = environment.getProperty("br.com.ntconsult.dataanalyzer.data.file.extension",".");			
 			File file = new File(baseFolder+"/data/out/"+fileName+".done"+extension);
-			FileWriter fileWriter = new FileWriter(file);
+			FileWriter fileWriter = new FileWriter(file, false);
 			PrintWriter printWriter = new PrintWriter(fileWriter);					
 			printWriter.println("Quantidade de clientes no arquivo de entrada: "+ amountClients);
 			printWriter.println("Quantidade de vendedores no arquivo de entrada: "+ amountClients);

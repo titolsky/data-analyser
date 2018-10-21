@@ -33,7 +33,7 @@ public class WatchFileResolver implements InitializingBean
 	
 	private static final Logger LOGGER = Logger.getLogger(WatchFileResolver.class.getName());
 		
-	private void initWatchService(String baseFolder) throws IOException, InterruptedException
+	private  void initWatchService(String baseFolder) throws IOException, InterruptedException
 	{
 		WatchService watchService = FileSystems.getDefault().newWatchService();
 
@@ -49,14 +49,19 @@ public class WatchFileResolver implements InitializingBean
 				String extension = environment.getProperty("br.com.ntconsult.dataanalyzer.data.file.extension", ".dat");
 				if(event.context().toString().endsWith(extension))
 				{				
-					Path dir = (Path) key.watchable();
-					Path fullPath = dir.resolve((Path) event.context());
-					analyzer.analyze(fullPath);
-					LOGGER.log(Level.INFO, String.format("File affected: '%s'", fullPath.toString()));
+					resolveFile(key, event);
 				}
 			}
 			key.reset();
 		}
+	}
+	
+	private synchronized void resolveFile(WatchKey key, WatchEvent<?> event)
+	{
+		Path dir = (Path) key.watchable();
+		Path fullPath = dir.resolve((Path) event.context());
+		analyzer.analyze(fullPath);
+		LOGGER.log(Level.INFO, String.format("File affected: '%s'", fullPath.toString()));
 	}
 	
 	private void initFolders(String baseFolder)
